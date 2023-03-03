@@ -1,18 +1,21 @@
-import { Play } from 'phosphor-react'
-import { useForm } from 'react-hook-form' /* npm i @hookform/resolvers tem que baixar esse pacote para  a hook form possa integrar com o zod */
+import { HandPalm, Play } from 'phosphor-react'
+import {
+  FormProvider,
+  useForm,
+} from 'react-hook-form' /* npm i @hookform/resolvers tem que baixar esse pacote para  a hook form possa integrar com o zod */
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as zod from 'zod'
-import { useState } from 'react'
+import { useContext } from 'react'
+
+import { NewCycleForm } from './components/NewCycleForm'
+import { Countdowm } from './components/Countdowm'
 
 import {
-  Separator,
-  CountdowmContainer,
-  FormContainer,
   HomeContainer,
   StarTCountdowmButton,
-  TaskInput,
-  MinutesamountInput,
+  StopCountdowmButton,
 } from './styled'
+import { CyclesContext } from '../../context/CyclesContext'
 
 const newCycleFormValidationSchema = zod.object({
   task: zod.string().min(1, 'Informe a tarefa'),
@@ -22,18 +25,13 @@ const newCycleFormValidationSchema = zod.object({
     .max(60, 'o ciclo é de no maximo 60 minutos'),
 })
 
-type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
-
-interface Cycle {
-  id: string
-  task: string
-  minutesAmount: number
-}
-
 export function Home() {
-  const [cycles, setCycles] = useState<Cycle[]>([])
+  const { CreateNewCycle, InterruptCurrentCycle, activeCycle } =
+    useContext(CyclesContext)
 
-  const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
+  type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
+
+  const newCycleForm = useForm<NewCycleFormData>({
     resolver: zodResolver(
       newCycleFormValidationSchema,
     ) /* aqui estamos faazendo a validação, usando os parametros criado no newCycleformValidationtSchima */,
@@ -43,59 +41,34 @@ export function Home() {
     },
   })
 
+  const { handleSubmit, watch, reset } = newCycleForm
+
   function handleCreateNewCycle(data: NewCycleFormData) {
-    const newCycle: Cycle = {
-      id: String(new Date().getTime()),
-      task: data.task,
-      minutesAmount: data.minutesAmount,
-    }
-    reset() // vai retornar ao valor original ali no defaultVAualues (onde eu mexi no hookform)
+    CreateNewCycle(data)
+    reset()
   }
 
   const task = watch('task')
   const isSubmiteDisable = !task
+
   return (
     <HomeContainer>
-      <form action="" onSubmit={handleSubmit(handleCreateNewCycle)}>
-        <FormContainer>
-          <label htmlFor="task">vou trabalhar em</label>
-          <TaskInput
-            list="task-suggestion"
-            placeholder="Dê um nome para o seu projeto"
-            id="task"
-            {...register('task')}
-          />
-
-          <datalist id="task-suggestion">
-            <option value="Projeto 1" />
-          </datalist>
-
-          <label htmlFor="minutesAmount">durante</label>
-          <MinutesamountInput
-            type="number"
-            id="minutesAmount"
-            placeholder="00"
-            step={5}
-            min={5}
-            max={60}
-            {...register('minutesAmount', { valueAsNumber: true })} // esse segundo parametro serve para deixar como numero, pois por natureza ele é uma string
-          />
-
-          <span>minutos.</span>
-        </FormContainer>
-
-        <CountdowmContainer>
-          <span>0</span>
-          <span>0</span>
-          <Separator>:</Separator>
-          <span>0</span>
-          <span>0</span>
-        </CountdowmContainer>
-
-        <StarTCountdowmButton type="submit" disabled={isSubmiteDisable}>
-          <Play size={24} />
-          Começar
-        </StarTCountdowmButton>
+      <form onSubmit={handleSubmit(handleCreateNewCycle)}>
+        <FormProvider {...newCycleForm}>
+          <NewCycleForm />
+        </FormProvider>
+        <Countdowm />
+        {activeCycle ? (
+          <StopCountdowmButton onClick={InterruptCurrentCycle} type="button">
+            <HandPalm size={24} />
+            Interromper
+          </StopCountdowmButton>
+        ) : (
+          <StarTCountdowmButton type="submit" disabled={isSubmiteDisable}>
+            <Play size={24} />
+            Começar
+          </StarTCountdowmButton>
+        )}
       </form>
     </HomeContainer>
   )
