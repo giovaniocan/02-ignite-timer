@@ -12,6 +12,7 @@ import {
   interruptCurrentCycleAction,
   markCurrentCycleAsFinishedActtion,
 } from '../reducers/cycles/actions'
+
 import { Cycle, cyclesReducer } from '../reducers/cycles/reducer'
 
 interface CreateCycleData {

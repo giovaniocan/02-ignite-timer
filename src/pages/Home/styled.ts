@@ -16,7 +16,6 @@ export const HomeContainer = styled.main`
   }
 `
 
-
 export const BaseCountdowmButton = styled.button`
   width: 100%;
   border: 0;

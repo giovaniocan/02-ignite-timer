@@ -10,7 +10,6 @@ export interface Cycle {
   interruptedDate?: Date
   finishedDate?: Date
 }
-
 interface CyclesState {
   cycles: Cycle[]
   activeCycleId: string | null
